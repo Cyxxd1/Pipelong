@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipelong</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header>
+    Pipelong: Underground Cooling Dashboard
+  </header>
+
+  <div class="dashboard-layout">
+    <form class="card form-card" id="simulation-form">
+      <h2>Enter Area-Specific Parameters</h2>
+
+      <label for="surface_temp">Surface Temperature (°C):</label>
+      <input type="number" step="0.1" min="0" name="surface_temp" value="25.0" required />
+
+      <label for="max_flow">Max Pump Flow Rate (m³/s):</label>
+      <input type="number" step="0.001" min="0.001" name="max_flow" value="0.05" required />
+
+      <label for="evap_override">Evaporation Rate (L/h) <span style="font-weight: normal; color: #64748b;">(optional)</span>:</label>
+      <input type="number" step="1" min="0" name="evap_override" placeholder="Auto-estimated if left blank" />
+
+      <label for="initial_volume">Initial Water Volume (m³):</label>
+      <input type="number" step="1" min="0" name="initial_volume" value="100" required />
+
+      <label for="humidity">Ambient Humidity (%):</label>
+      <input type="number" step="1" min="0" max="100" name="humidity" value="70" required />
+
+      <label for="wind_speed">Wind Speed (m/s):</label>
+      <input type="number" step="0.1" min="0" name="wind_speed" value="2.0" required />
+
+      <button type="submit">Run Simulation</button>
+    </form>
+
+    <div class="card-grid">
+      <div class="card">
+        <h2>GPU Temperature</h2>
+        <div class="value" id="gpu-temp">--</div>
+      </div>
+      <div class="card">
+        <h2>Circulation Water Temp</h2>
+        <div class="value" id="circulation-temp">--</div>
+      </div>
+      <div class="card">
+        <h2>Underground Reservoir Temp</h2>
+        <div class="value" id="reservoir-temp">--</div>
+      </div>
+      <div class="card">
+        <h2>Water Flow Rate</h2>
+        <div class="value" id="flow-rate">--</div>
+      </div>
+      <div class="card">
+        <h2>Energy Efficiency</h2>
+        <div class="value" id="efficiency">--</div>
+      </div>
+      <div class="card">
+        <h2>Water Saved Today</h2>
+        <div class="value" id="water-saved">--</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    &copy; 2025 Pipelong — Sustainable Cooling
+  </div>
+
+  <script>
+    document.getElementById("simulation-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const userInputs = Object.fromEntries(formData.entries());
+
+      fetch("/run-model", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(userInputs)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert("Error: " + data.error);
+          return;
+        }
+
+        document.getElementById("gpu-temp").textContent = data.gpu_temp;
+        document.getElementById("circulation-temp").textContent = data.circulation_temp;
+        document.getElementById("reservoir-temp").textContent = data.reservoir_temp;
+        document.getElementById("flow-rate").textContent = data.flow_rate;
+        document.getElementById("efficiency").textContent = data.efficiency;
+        document.getElementById("water-saved").textContent = data.water_saved;
+      })
+      .catch(err => {
+        alert("Something went wrong: " + err.message);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f5f7fa;
+}
+
+header {
+  background-color: #1e293b;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  font-size: 24px;
+}
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  align-items: start;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.card h2 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #1e293b;
+}
+
+.value {
+  font-size: 32px;
+  color: #0f172a;
+  margin-top: 10px;
+}
+
+.footer {
+  text-align: center;
+  padding: 10px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* Form-specific styling */
+.form-card label,
+.form-card input {
+  display: block;
+  width: 100%;
+}
+
+.form-card label {
+  font-weight: bold;
+  margin-top: 10px;
+  color: #1e293b;
+}
+
+.form-card input {
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-card button {
+  margin-top: 20px;
+  background-color: #1e293b;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.form-card button:hover {
+  background-color: #334155;
+}
+
+/* Responsive tweak for mobile */
+@media (max-width: 768px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+}
