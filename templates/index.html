@@ -8,7 +8,7 @@
 </head>
 <body>
   <header>
-    Pipelong: Underground Cooling Dashboard
+    Underground Cooling Dashboard
   </header>
 
   <div class="dashboard-layout">
@@ -36,7 +36,7 @@
       <label for="client_ambient_temp">Ambient Temperature (°C):</label>
       <input type="number" step="0.1" name="client_ambient_temp" value="27.5" required />
 
-      <button type="submit">Run Simulation</button>
+      <button type="submit">Run Calculation</button>
     </form>
 
     <div class="comparison-grid">
@@ -64,7 +64,7 @@
   </div>
 
   <div class="footer">
-    &copy; 2025 Pipelong — Sustainable Cooling
+    &copy; 2025 Pipelong Analaytics
   </div>
 
   <script>
@@ -110,10 +110,10 @@
       runSimulation();
     });
 
-    // Run simulation on initial page load
-    window.addEventListener("DOMContentLoaded", () => {
-      runSimulation();
-    });
+    // // Run simulation on initial page load
+    // window.addEventListener("DOMContentLoaded", () => {
+    //   runSimulation();
+    // });
   </script>
 </body>
 </html>
