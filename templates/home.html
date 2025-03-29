@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Pipelong Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='home_styles.css') }}" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      scroll-behavior: smooth;
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      height: auto;
+    }
+    *, *::before, *::after {
+      box-sizing: inherit;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: transparent;
+      z-index: 1000;
+    }
+    .logo img {
+      height: 60px;
+      width: auto;
+    }
+    .navbar nav ul {
+      list-style: none;
+      display: flex;
+      margin: 0;
+      padding: 0;
+    }
+    .navbar nav ul li {
+      margin-left: 2rem;
+    }
+    .navbar nav ul li a {
+      text-decoration: none;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .hero {
+      height: 100vh;
+      background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.6)),
+                  url("{{ url_for('static', filename='images/waterbg.jpg') }}") center center / cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      max-width: 90%;
+    }
+
+    .pinned-container {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .scaleDown {
+      width: 250vw;
+      height: 250vh;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.6)),
+                  url("{{ url_for('static', filename='images/black.jpg') }}") center center / cover no-repeat;
+      transform-origin: center;
+      z-index: 1;
+    }
+
+    .center-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      color: white;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+
+
+    .dashboard-section {
+      background: #0b0f1a;
+      padding: 80px 20px;
+      z-index: 10;
+      position: relative;
+    }
+
+    .dashboard-section iframe {
+      max-width: 1400px;
+      width: 100%;
+      height: 1000px;
+      border: none;
+      display: block;
+      margin: 0 auto;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 1.6rem;
+      }
+      .center-message h2 {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="logo">
+      <img src="{{ url_for('static', filename='images/ben_crop.png') }}" alt="Logo" />
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#dashboard-section">Estimates</a></li>
+        <li><a href="#">Resources</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">About Us</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>Deep Cooling. High Performance. Sustainable Future</h1>
+  </section>
+
+  <!-- Animated Section -->
+  <section class="pinned-container">
+    <div class="scaleDown"></div>
+    <div class="center-message">
+      <h2>Scroll to Explore the Future of Cooling</h2>
+    </div>
+  </section>
+
+  <!-- Spacer for scrolling animation -->
+  <div class="spacer"></div>
+
+  <!-- Dashboard Section -->
+  <section class="dashboard-section" id="dashboard-section">
+    <iframe src="/dashboard"></iframe>
+  </section>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/ScrollTrigger.min.js"></script>
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.to(".scaleDown", {
+      scale: 0.4,
+      scrollTrigger: {
+        trigger: ".pinned-container",
+        start: "top top",
+        end: "+=800", // amount of scroll before it unpins
+        scrub: true,
+        pin: true,
+      }
+    });
+  </script>
+
+</body>
+</html>

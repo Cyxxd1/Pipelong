@@ -1,138 +1,137 @@
-# model.py
 import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
 
-def run_model(inputs):
-    # Extract user inputs
-    surface_temp = float(inputs["surface_temp"])
-    max_flow = float(inputs["max_flow"])
-    initial_volume = float(inputs["initial_volume"])
-    humidity = float(inputs["humidity"])
-    wind_speed = float(inputs["wind_speed"])
-    evap_override = inputs.get("evap_override")
+def run_model(data):
+    # =============================================================================
+    # PART 1: Client-Provided Data from Flask JSON
+    # =============================================================================
+    client_annual_energy_conventional = float(data["client_annual_energy_conventional"])
+    client_annual_water_conventional = float(data["client_annual_water_conventional"])
+    client_avg_IT_load = float(data["client_avg_IT_load"])
+    client_evaporation_rate = float(data["client_evaporation_rate"])
+    client_energy_cost = float(data["client_energy_cost"])
+    client_water_cost = float(data["client_water_cost"])
+    client_ambient_temp = float(data["client_ambient_temp"])
 
-    # Validate inputs
-    if any(val < 0 for val in [surface_temp, max_flow, initial_volume, humidity, wind_speed]):
-        raise ValueError("All input values must be non-negative.")
-    if max_flow == 0:
-        raise ValueError("Max pump flow rate must be greater than 0.")
+    # Baseline
+    conventional_cost = client_annual_energy_conventional * client_energy_cost + client_annual_water_conventional * client_water_cost
+    conventional_energy_joules = client_annual_energy_conventional * 3.6e6
 
-    # Load datasets
-    df_conv = pd.read_csv("data/conventional_datacentre.csv")
-    df_well = pd.read_csv("data/underground_well_datacentre.csv")
+    T_list = list(range(12))
+    IT_Load = {t: client_avg_IT_load for t in T_list}
 
-    scaling_factor = 200
-    total_energy_conv = df_conv['Pump_Energy_kWh'].sum()
-    total_water_conv = (df_conv['Makeup_Water_Usage_m3'] * scaling_factor).sum()
-
-    # Estimate or use override evaporation rate
-    if evap_override:
-        evap_rate_Lph = float(evap_override)
-        leakage_rate = evap_rate_Lph / 1000
-    else:
-        df_conv['Evaporation_Rate_Lph'] = (
-            df_conv['Evaporative_Loss_Percent'] / 100
-            * df_conv['Pump_Flow_Rate_m3s']
-            * 3600
-            * 1000
-        )
-        evap_rate_Lph = df_conv['Evaporation_Rate_Lph'].mean()
-        leakage_rate = evap_rate_Lph / 1000
-
-    T_list = df_well['Time'].tolist()
-    IT_Load = {int(row['Time']): row['IT_Load_kW'] for index, row in df_well.iterrows()}
-
-    T_dc_target = 24.0
-    alpha = 0.1
+    # Model parameters
+    T_surface = client_ambient_temp
+    alpha = 0.07
+    T_dc_target = 27.0
     K_well = 2000.0
     g = 9.81
     rho = 1000.0
-    Delta_t = 1.0
+    Delta_t = 720.0
     eta = 0.7
-
-    # Bounds and costs
-    Q_max = max_flow
-    Q_min = 0.003
+    Q_max = 6.0
     D_min = 15.0
-    D_max = 150.0
-    cost_energy = 0.1
-    cost_water = 1.0
+    D_max = 80.0
+    V_initial = 1000.0
+    leakage_rate = client_evaporation_rate
+    cost_energy = client_energy_cost
+    cost_water = client_water_cost
+    B = T_dc_target - T_surface
 
-    A = T_dc_target - surface_temp
+    # Optimization model
+    model = gp.Model("Optimal_Underground_Well_Yearly")
+    model.Params.LogToConsole = 0  # Silence output
 
-    # Create model
-    model = gp.Model("Underground_Well_Model")
-    model.setParam("OutputFlag", 0)
-
-    # Decision variables
-    Q, z = {}, {}
+    Q = {}
+    z = {}
     for t in T_list:
-        Q[t] = model.addVar(lb=Q_min, ub=Q_max, name=f"Q_{t}")
+        Q[t] = model.addVar(lb=0.0, ub=Q_max, name=f"Q_{t}")
         z[t] = model.addVar(lb=0.0, ub=Q_max * D_max, name=f"z_{t}")
 
     D = model.addVar(lb=D_min, ub=D_max, name="Depth")
     model.update()
 
-    # Cooling constraints
     for t in T_list:
-        model.addConstr(K_well * (A * Q[t] + alpha * z[t]) >= IT_Load[t], name=f"Cooling_{t}")
+        model.addConstr(K_well * (B * Q[t] + alpha * z[t]) >= IT_Load[t])
+
+    for t in T_list:
         model.addConstr(z[t] >= D_min * Q[t])
         model.addConstr(z[t] >= Q_max * D + Q[t] * D_max - Q_max * D_max)
         model.addConstr(z[t] <= Q_max * D + Q[t] * D_min - Q_max * D_min)
         model.addConstr(z[t] <= D_max * Q[t])
+    model.update()
 
-    # Objective components
+    # Objective
     energy_expr = gp.quicksum((Q[t] * D * g * rho * Delta_t) / (1000 * eta) for t in T_list)
-    energy_cost = energy_expr * cost_energy
-
     water_pumped_expr = gp.quicksum(Q[t] * Delta_t for t in T_list)
-    net_water_expr = initial_volume + leakage_rate * water_pumped_expr
+    net_water_expr = V_initial + leakage_rate * water_pumped_expr
+    energy_cost = energy_expr * cost_energy
     water_cost = net_water_expr * cost_water
-
     total_cost = energy_cost + water_cost
-
-    # Set objective and solve
     model.setObjective(total_cost, GRB.MINIMIZE)
     model.optimize()
 
     if model.status != GRB.OPTIMAL:
-        raise ValueError("Model did not find an optimal solution with the given parameters.")
+        return {"error": "Optimisation failed", "status": model.status}
 
-    # Retrieve results
+    # Final values
     optimal_D = D.X
-    T_well_opt = surface_temp - alpha * optimal_D
+    optimal_energy_new = energy_expr.getValue()
+    optimal_net_water_new = net_water_expr.getValue()
+    total_cost_new = model.ObjVal
+    savings = conventional_cost - total_cost_new
 
-    cumulative_energy_new = 0.0
-    cumulative_IT_load = 0.0
-    flow_rates = []
-    last_T_dc = 0.0
+    # Monthly values
+    T_well_opt = T_surface - alpha * optimal_D
+    flow_data = []
+    cum_energy = 0.0
+    cum_water = 0.0
+    energy_arr = []
+    water_arr = []
 
     for t in T_list:
-        q_val = Q[t].X
-        it_load = IT_Load[t]
-        energy_val = (q_val * optimal_D * g * rho * Delta_t) / (1000 * eta)
-        cumulative_energy_new += energy_val
-        cumulative_IT_load += it_load
+        q = Q[t].X
+        energy_t = (q * optimal_D * g * rho * Delta_t) / (1000 * eta)
+        cum_energy += energy_t
+        pumped = q * Delta_t
+        cum_water += leakage_rate * pumped
+        energy_arr.append(cum_energy)
+        water_arr.append(V_initial + cum_water)
 
-        if q_val > 0:
-            last_T_dc = T_well_opt + it_load / (K_well * q_val)
+        T_dc_est = T_well_opt + IT_Load[t] / (K_well * q) if q > 1e-6 else None
+        flow_data.append({
+            "month": t,
+            "flow_rate": q,
+            "energy": energy_t,
+            "estimated_T_dc": T_dc_est
+        })
 
-        flow_rates.append(q_val * 60000)
-
-    avg_flow_rate = sum(flow_rates) / len(flow_rates) if flow_rates else 0.0
-    reservoir_temp = T_well_opt
-
-    water_saved = max((total_water_conv - net_water_expr.getValue()) * 1000, 0)
-
-    cooling_output_kWh = cumulative_IT_load * Delta_t / 1000
-    efficiency_percent = (cooling_output_kWh / cumulative_energy_new) * 100 if cumulative_energy_new > 0 else 0
+    # For plotting
+    try:
+        df_conv = pd.read_csv("conventional_datacentre_year.csv")
+        df_conv['Cumulative_Water_Usage'] = df_conv['Makeup_Water_Usage_m3'].cumsum()
+        df_conv['Cumulative_Energy'] = df_conv['Pump_Energy_kWh'].cumsum()
+        time = df_conv['Time'].tolist()
+        conv_energy = df_conv['Cumulative_Energy'].tolist()
+        conv_water = df_conv['Cumulative_Water_Usage'].tolist()
+    except:
+        time, conv_energy, conv_water = [], [], []
 
     return {
-        "gpu_temp": "70°C",
-        "circulation_temp": f"{last_T_dc:.1f}°C",
-        "reservoir_temp": f"{reservoir_temp:.1f}°C",
-        "flow_rate": f"{avg_flow_rate:.1f} L/min",
-        "efficiency": f"{efficiency_percent:.0f}%",
-        "water_saved": f"{water_saved:.0f} L"
+        "optimal_energy_new": optimal_energy_new,
+        "optimal_energy_joules": optimal_energy_new * 3.6e6,
+        "optimal_net_water_new": optimal_net_water_new,
+        "total_cost_new": total_cost_new,
+        "client_annual_energy_conventional": client_annual_energy_conventional,
+        "conventional_energy_joules": conventional_energy_joules,
+        "client_annual_water_conventional": client_annual_water_conventional,
+        "conventional_cost": conventional_cost,
+        "savings": savings,
+        "flow_data": flow_data,
+        "cumulative_energy": energy_arr,
+        "cumulative_water": water_arr,
+        "conventional_energy": conv_energy,
+        "conventional_water": conv_water,
+        "months": time
     }

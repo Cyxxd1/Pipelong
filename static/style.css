@@ -22,9 +22,15 @@ header {
   align-items: start;
 }
 
-.card-grid {
+.comparison-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.comparison-column {
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
@@ -45,6 +51,12 @@ header {
   font-size: 32px;
   color: #0f172a;
   margin-top: 10px;
+}
+
+.savings-summary {
+  text-align: center;
+  background-color: #e0f7e9;
+  font-weight: bold;
 }
 
 .footer {
@@ -96,5 +108,13 @@ header {
 @media (max-width: 768px) {
   .dashboard-layout {
     grid-template-columns: 1fr;
+  }
+
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .savings-summary {
+    grid-column: span 1;
   }
 }
