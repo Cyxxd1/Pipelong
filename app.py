@@ -11,6 +11,10 @@ def home():
 def dashboard():
     return render_template("index.html")
 
+@app.route("/monitoring")
+def monitoring():
+    return render_template("monitoring.html")
+
 @app.route("/run-model", methods=["POST"])
 def run_simulation():
     data = request.json

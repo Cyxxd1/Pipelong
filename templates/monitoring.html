@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PL Monitoring System</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: #f8f9fa;
+      color: #212529;
+      padding-top: 70px; /* Account for fixed navbar */
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      background: rgba(0, 0, 0);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+    }
+
+    .logo {
+      position: relative;
+      height: 100%;
+    }
+
+    .logo img {
+      position: absolute;
+      top: -15px;
+      height: 100px;
+      width: auto;
+    }
+
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar ul li {
+      margin-left: 1.5rem;
+    }
+
+    .navbar ul li a {
+      text-decoration: none;
+      color: #fff;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .navbar ul li a:hover {
+      color: #d3d3d3;
+    }
+
+    header.page-header {
+      text-align: center;
+      background-color: #ffffff;
+      color: #343a40;
+      padding: 30px;
+      border-radius: 6px;
+      margin: 20px auto;
+      max-width: 1200px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    header.page-header h1 {
+      font-size: 2rem;
+      margin: 0;
+    }
+
+    .dashboard {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .card, .warnings {
+      background-color: #fff;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card h2, .warnings h2 {
+      margin-bottom: 15px;
+      font-size: 1.4rem;
+      color: #343a40;
+    }
+
+    .status-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .status-item {
+      flex: 1;
+      min-width: 220px;
+      background-color: #e9ecef;
+      padding: 15px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+    }
+
+    .status-item .label {
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .status-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .green {
+      background-color: #28a745;
+    }
+
+    .yellow {
+      background-color: #ffc107;
+    }
+
+    .red {
+      background-color: #dc3545;
+    }
+
+    .gauge, .savings-info {
+      font-size: 1.5rem;
+      text-align: center;
+      margin: 20px 0;
+      color: #343a40;
+    }
+
+    .subtext {
+      font-size: 0.9rem;
+      text-align: center;
+      color: #6c757d;
+    }
+
+    .warnings ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .warnings li {
+      margin-bottom: 8px;
+      font-size: 1rem;
+      color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar (Same Style as home.html) -->
+  <header class="navbar">
+    <div class="logo">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" />
+    </div>
+    <nav>
+      <ul>
+        <li><a href="{{ url_for('home') }}#dashboard-section">Estimates</a></li>
+        <li><a href="{{ url_for('monitoring') }}">Dashboard</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">About Us</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <h1>PL Monitoring System</h1>
+  </header>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard">
+    <div class="card">
+      <h2>System Status</h2>
+      <div class="status-container">
+        <div class="status-item">
+          <span class="status-indicator green"></span>
+          <span class="label">Sensor 1</span>Operational
+        </div>
+        <div class="status-item">
+          <span class="status-indicator green"></span>
+          <span class="label">Sensor 2</span>Operational
+        </div>
+        <div class="status-item">
+          <span class="status-indicator green"></span>
+          <span class="label">Sensor 3</span>Operational
+        </div>
+        <div class="status-item">
+          <span class="status-indicator green"></span>
+          <span class="label">Pipes</span>No Leaks
+        </div>
+        <div class="status-item">
+          <span class="status-indicator green"></span>
+          <span class="label">Water Pressure</span>Normal
+        </div>
+        <div class="status-item">
+          <span class="status-indicator yellow"></span>
+          <span class="label">Flow Rate</span>Sub Optimal
+        </div>
+        <div class="status-item">
+          <span class="status-indicator green"></span>
+          <span class="label">Tank Level</span>Optimal
+        </div>
+        <div class="status-item">
+          <span class="status-indicator green"></span>
+          <span class="label">Temperature</span>Normal
+        </div>
+      </div>
+    </div>
+
+    <div class="warnings">
+      <h2>System Warnings</h2>
+      <ul>
+        <li>Warning: Flow Rate is sub optimal.</li>
+        <li>Suggestion: Please inspect the pipeline for any blockages and verify the pump operation to improve water flow.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Water Savings</h2>
+      <div class="gauge" id="hourlyRate">Saving: 456 L/hr</div>
+      <div class="savings-info" id="cumulativeLiters">Cumulative Savings: 0 L</div>
+      <div class="savings-info" id="costSavings">Cost Savings: $0.00</div>
+      <div class="subtext">Data updates every second.</div>
+    </div>
+
+    <div class="card">
+      <h2>Additional System Info</h2>
+      <p>
+        This system monitors water flow, pressure, sensor integrity, and equipment performance in real-time.
+        It calculates water savings based on improved system efficiency and estimates cost savings using current water prices.
+      </p>
+      <p>
+        The dashboard alerts you of any anomalies, such as sensor failures or pipe leaks.
+        All statuses appear in green when operational. Adjust the code to highlight issues in red if needed.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const waterSavingPerHour = 456;
+    const costPerLiter = 1.5;
+    let cumulativeLiters = 0;
+
+    function updateDashboard() {
+      cumulativeLiters += waterSavingPerHour / 3600;
+      const costSavings = cumulativeLiters * costPerLiter;
+
+      document.getElementById('hourlyRate').innerText = `Saving: ${waterSavingPerHour.toFixed(0)} L/hr`;
+      document.getElementById('cumulativeLiters').innerText = `Cumulative Savings: ${cumulativeLiters.toFixed(1)} L`;
+      document.getElementById('costSavings').innerText = `Cost Savings: $${costSavings.toFixed(2)}`;
+    }
+
+    setInterval(updateDashboard, 1000);
+  </script>
+</body>
+</html>

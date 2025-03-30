@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Pipelong Dashboard</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='home_styles.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <style>
     html, body {
       margin: 0;
@@ -31,6 +31,7 @@
       background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(8px);
       z-index: 1000;
+      font-size: 1rem;
     }
 
     .logo {
@@ -148,7 +149,7 @@
     <nav>
       <ul>
         <li><a href="#dashboard-section">Estimates</a></li>
-        <li><a href="#">Resources</a></li>
+        <li><a href="{{ url_for('monitoring') }}">Dashboard</a></li>
         <li><a href="#">Contact Us</a></li>
         <li><a href="#">About Us</a></li>
       </ul>
